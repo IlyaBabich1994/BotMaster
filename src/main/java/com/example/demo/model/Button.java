@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Entity
 @Builder
 @AllArgsConstructor
@@ -37,5 +39,26 @@ public class Button {
     }
     public String getCallbackData(){
         return callbackData;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Button button = (Button) o;
+        return botId == button.botId && label.equals(button.label) && callbackData.equals(button.callbackData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(botId, label, callbackData);
+    }
+
+    @Override
+    public String toString() {
+        return "Button{" +
+                "label='" + label + '\'' +
+                ", callbackData='" + callbackData + '\'' +
+                '}';
     }
 }

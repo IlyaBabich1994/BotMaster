@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
+import java.util.Objects;
+
 
 @Entity
 @Data
@@ -50,5 +52,26 @@ public class User {
     }
     public boolean getState(){
         return status;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return status == user.status && state == user.state;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(status, state);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "status=" + status +
+                ", state=" + state +
+                '}';
     }
 }
