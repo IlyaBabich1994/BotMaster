@@ -13,7 +13,7 @@ class UserRepository  {
 
     public User findByTelegramId(Long telegramId) {
         for (User user : users) {
-            if () {
+            if (user.getTelegramId() == telegramId) {
                 return user;
             }
         }
