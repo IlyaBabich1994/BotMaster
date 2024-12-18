@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: bot-core
+  datasource:
+    url: jdbc:mysql://localhost:3306/mydb
+    username: root
+    password: You_Shel1_NotPass
+    driver-class-name: org.postgresql.Driver
