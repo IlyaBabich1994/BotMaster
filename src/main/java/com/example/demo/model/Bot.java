@@ -5,7 +5,6 @@ import jakarta.persistence.Id;
 import lombok.*;
 
 import java.util.Date;
-import java.util.Objects;
 
 @Entity
 @Getter
@@ -50,28 +49,5 @@ public class Bot {
     }
     public String getDate(){
         return "Creation date is " + createdAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Bot bot = (Bot) o;
-        return name.equals(bot.name) && token.equals(bot.token) && Objects.equals(welcomeMessage, bot.welcomeMessage) && createdAt.equals(bot.createdAt);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, token, welcomeMessage, createdAt);
-    }
-
-    @Override
-    public String toString() {
-        return "Bot{" +
-                "name='" + name + '\'' +
-                ", token='" + token + '\'' +
-                ", welcomeMessage='" + welcomeMessage + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
     }
 }
