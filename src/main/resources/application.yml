@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: bot-core
+  datasource:
+    url: jdbc:mysql://localhost:1313/anytable
+    username: Vovan
+    password: postgres
+    driver-class-name: org.postgresql.Driver

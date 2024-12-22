@@ -1,21 +1,11 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Button;
-import com.example.demo.model.Filter;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ButtonRepository {
-    private List<Button> buttons = new ArrayList<>();
-    public List<Button> resultButton = new ArrayList<>();
+public interface ButtonRepository extends JpaRepository<Button, Long> {
+    List<Button> findAllByBotId(Long botId);
 
-    public List<Button> findAllBuBotId (Long botId){
-        for (Button button:buttons){
-            if (button.getBotId()==botId){
-                resultButton.add(button);
-            }
-        }
-        return buttons;
-    }
 }

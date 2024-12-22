@@ -1,19 +1,12 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Bot;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
-public class BotRepository {
-    private List<Bot> bots = new ArrayList<>();
-
-    public Bot findByToken(String token) {
-        for (Bot bot : bots) {
-            if (bot.getToken().equals(token)) {
-                return bot;
-            }
-        }
-        return null;
-    }
+@Repository
+public interface BotRepository extends CrudRepository<Bot, Long> {
+    Optional<Bot> findByToken(String token);
 }
