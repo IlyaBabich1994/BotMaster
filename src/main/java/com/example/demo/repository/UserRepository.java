@@ -1,23 +1,12 @@
 package com.example.demo.repository;
 
 
-
 import com.example.demo.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
-class UserRepository  {
-    private List<User> users = new ArrayList<>();
-
-
-    public User findByTelegramId(Long telegramId) {
-        for (User user : users) {
-            if (user.getTelegramId() == telegramId) {
-                return user;
-            }
-        }
-        return null;
-    }
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByTelegramId(Long telegramId);
 }
 
