@@ -17,7 +17,7 @@ import java.util.List;
 public class Filter {
     @Id
     private Long id;
-    private String botId;
+    private Long botId;
     private String patern;
     private List<String> action;
 }

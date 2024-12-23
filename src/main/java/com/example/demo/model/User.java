@@ -19,6 +19,4 @@ public class User {
     private Long telegramId;
     private boolean status;
     private boolean state;
-
-
 }
