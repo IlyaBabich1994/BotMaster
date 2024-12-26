@@ -7,23 +7,27 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class BotServiceImpl implements BotService {
-    @Autowired
     private final BotRepository botRepository;
-
+    @Autowired
     public BotServiceImpl(BotRepository botRepository) {
         this.botRepository = botRepository;
     }
 
     @Override
     public Bot findByToken(String token) {
-        return botRepository.findByToken(token).orElseThrow(
-                () -> new RuntimeException("Bot not found")
-        );
+        if (token == null || token.isEmpty()) {
+            throw new IllegalArgumentException("Token must not be null or empty");
+        } else {
+            return botRepository.findByToken(token).orElseThrow(
+                    () -> new RuntimeException("Bot not found")
+            );
+        }
     }
 
     @Override
-    public void createBot(Bot bot) {
+    public Bot createBot(Bot bot) {
         botRepository.save(bot);
+        return bot;
     }
 
     @Override

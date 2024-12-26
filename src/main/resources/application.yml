@@ -1,8 +1,12 @@
 spring:
-  application:
-    name: bot-core
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
   datasource:
-    url: jdbc:postgres://localhost:1313/anytable
+    platform: postgres
+    url: jdbc:postgresql://localhost:1313/postgres
     username: Vovan
     password: postgres
-    driver-class-name: org.postgresql.Driver
+    driverClassName: org.postgresql.Driver

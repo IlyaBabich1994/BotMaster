@@ -10,6 +10,7 @@ import java.util.List;
 
 import static com.example.demo.util.Creater.createButton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class ButtonServiceImplTest {
@@ -29,16 +30,46 @@ class ButtonServiceImplTest {
     }
 
     @Test
-    public void testCreateButton() {
-        Button button = createButton();
-        buttonService.addButton(button);
-        verify(buttonRepository, only()).save(button);
+    public void testAddButton_NullButton() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            buttonService.addButton(null);
+        });
+        assertEquals("Button must not be null", exception.getMessage());
+        verify(buttonRepository, never()).save(any(Button.class));
     }
 
     @Test
-    public void testDeleteButton() {
+    public void testAddButtonCorrectButton() {
         Button button = createButton();
+        buttonService.addButton(button);
+        verify(buttonRepository, times(1)).save(button);
+    }
+
+    @Test
+    public void testRemoveButtonNullButton() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            buttonService.removeButton(null);
+        });
+        assertEquals("Button must not be null", exception.getMessage());
+        verify(buttonRepository, never()).delete(any(Button.class));
+    }
+
+    @Test
+    public void testRemoveButtonButtonNotFound() {
+        Button button = createButton();
+        when(buttonRepository.existsById(button.getId())).thenReturn(false);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            buttonService.removeButton(button);
+        });
+        assertEquals("Button not found", exception.getMessage());
+        verify(buttonRepository, never()).delete(button);
+    }
+
+    @Test
+    public void testRemoveButtonSuccess() {
+        Button button = createButton();
+        when(buttonRepository.existsById(button.getId())).thenReturn(true);
         buttonService.removeButton(button);
-        verify(buttonRepository, only()).delete(button);
+        verify(buttonRepository, times(1)).delete(button);
     }
 }

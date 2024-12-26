@@ -71,9 +71,9 @@ class UserServiceImplTest {
     @Test
     public void testFindByTelegramId(){
         Long telegramId = 1L;
-        User expectedUser = createUser();
-        when(userRepository.findByTelegramId(telegramId)).thenReturn(Optional.of(expectedUser));
-        User result = userService.findByTelegramId(telegramId);
+        Optional<User> expectedUser = Optional.ofNullable(createUser());
+        when(userRepository.findByTelegramId(telegramId)).thenReturn(expectedUser);
+        Optional<User> result = userService.findByTelegramId(telegramId);
         verify(userRepository,only()).findByTelegramId(telegramId);
         assertEquals(expectedUser,result);
     }

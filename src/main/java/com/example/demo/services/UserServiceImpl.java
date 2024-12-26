@@ -4,7 +4,6 @@ import com.example.demo.model.User;
 import com.example.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
@@ -45,9 +44,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByTelegramId(Long telegramId) {
-        return userRepository.findByTelegramId(telegramId).orElseThrow(
+    public Optional<User> findByTelegramId(Long telegramId) {
+        return Optional.ofNullable(userRepository.findByTelegramId(telegramId).orElseThrow(
                 () -> new RuntimeException("User not found")
-        );
+        ));
     }
 }
