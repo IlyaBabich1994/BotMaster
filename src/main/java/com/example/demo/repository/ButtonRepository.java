@@ -7,5 +7,4 @@ import java.util.List;
 
 public interface ButtonRepository extends JpaRepository<Button, Long> {
     List<Button> findAllByBotId(Long botId);
-
 }

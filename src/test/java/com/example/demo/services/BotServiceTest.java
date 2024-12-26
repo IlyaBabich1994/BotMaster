@@ -24,9 +24,7 @@ class BotServiceTest {
         String token = "token";
         Bot expectedResult = createBot();
         when(botRepository.findByToken(token)).thenReturn(Optional.of(expectedResult));
-
         Bot result = botService.findByToken(token);
-
         verify(botRepository, only()).findByToken(token);
         assertEquals(expectedResult, result);
     }
@@ -35,7 +33,6 @@ class BotServiceTest {
     public void testFindByTokenShouldThrowException() {
         String token = "token";
         when(botRepository.findByToken(token)).thenThrow(new RuntimeException("Bot not found"));
-
         assertThrows(RuntimeException.class, () -> botService.findByToken(token));
         verify(botRepository, only()).findByToken(any());
     }

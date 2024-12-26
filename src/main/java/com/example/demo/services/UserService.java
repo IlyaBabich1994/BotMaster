@@ -2,6 +2,8 @@ package com.example.demo.services;
 
 import com.example.demo.model.User;
 
+import java.util.Optional;
+
 public interface UserService {
     void saveUser(User user);
 
@@ -11,6 +13,6 @@ public interface UserService {
 
     void unblockUser(Long userId);
 
-    User findByTelegramId(Long telegramId);
+    Optional<User> findByTelegramId(Long telegramId);
 
 }

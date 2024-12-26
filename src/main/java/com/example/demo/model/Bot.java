@@ -6,7 +6,6 @@ import lombok.*;
 
 import java.util.Date;
 
-
 @Entity
 @Data
 @ToString
@@ -14,7 +13,6 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class Bot {
     @Id
     private Long id;
