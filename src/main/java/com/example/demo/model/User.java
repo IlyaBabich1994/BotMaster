@@ -2,23 +2,22 @@ package com.example.demo.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
 
-import java.util.Date;
-
 @Entity
+@Table(name="users")
 @Data
 @ToString
 @EqualsAndHashCode
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class Bot {
+public class User {
     @Id
     private Long id;
-    private String name;
-    private String token;
-    private String welcomeMessage;
-    private Date createdAt;
-
+    private Long botId;
+    private Long telegramId;
+    private boolean status;
+    private boolean state;
 }
