@@ -4,21 +4,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
 
-import java.util.Date;
+import java.util.List;
+
 
 @Entity
-@Data
 @ToString
 @EqualsAndHashCode
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Bot {
+public class Filter {
     @Id
     private Long id;
-    private String name;
-    private String token;
-    private String welcomeMessage;
-    private Date createdAt;
-
+    private Long botId;
+    private String patern;
+    private List<String> action;
 }
