@@ -1,20 +1,12 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Filter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.ArrayList;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
-public class FilterRepository {
-    private List<Filter> filters = new ArrayList<>();
-
-    public List<Filter> findAllByBotId(Long botId) {
-        List<Filter> result = new ArrayList<>();
-        for (Filter filter : filters) {
-            if (filter.getBotId().equals(botId)) {
-                result.add(filter);
-            }
-        }
-        return result;
-    }
+public interface FilterRepository extends JpaRepository<Filter, Long> {
+    Page findAllByBotId(Long botId, Pageable pageable);
 }
