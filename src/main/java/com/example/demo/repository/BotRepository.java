@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface BotRepository extends JpaRepository<Bot, Long> {
     Optional<Bot> findByToken(String token);
+    boolean existsByName(String name);
 }
