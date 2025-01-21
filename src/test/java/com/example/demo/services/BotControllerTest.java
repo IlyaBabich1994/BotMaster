@@ -2,84 +2,93 @@ package com.example.demo.services;
 
 import com.example.demo.controlers.BotController;
 import com.example.demo.dto.BotRequest;
-import com.example.demo.dto.BotResponse;
 import com.example.demo.dto.FilterRequest;
 import com.example.demo.model.Bot;
-import com.example.demo.repository.BotRepository;
-import com.example.demo.repository.FilterRepository;
+import com.example.demo.model.Filter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class BotControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Mock
+    private BotService botService;
+
+    @Mock
+    private FilterService filterService;
 
     @InjectMocks
     private BotController botController;
 
-    @Mock
-    private BotRepository botRepository;
-
-    @Mock
-    private FilterRepository filterRepository;
-
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        mockMvc = MockMvcBuilders.standaloneSetup(botController).build();
     }
 
     @Test
-    public void testAddBot_Success() {
+    public void testAddBot_Success() throws Exception {
         BotRequest botRequest = new BotRequest();
-        botRequest.setName("Test Bot");
-        botRequest.setToken("test-token");
-        botRequest.setWelcomeMessage("Welcome!");
-        botRequest.setFilters(Collections.singletonList(new FilterRequest(".*", "ALLOW")));
+        botRequest.setName("MyBot");
+        botRequest.setToken("123456789");
+        botRequest.setCategory("General");
+        botRequest.setWelcomeMessage("Welcome to MyBot!");
+        botRequest.setFilters(Arrays.asList(new FilterRequest()));
 
-        when(botRepository.existsByName("Test Bot")).thenReturn(false);
-        when(botRepository.save(any(Bot.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        Bot bot = new Bot();
+        bot.setId(1L);
+        bot.setName("MyBot");
+        bot.setCreatedAt(new Date());
+        bot.setStatus("ACTIVE");
 
-        ResponseEntity<BotResponse> response = botController.addBot(botRequest);
+        when(botService.createBot(any(Bot.class))).thenReturn(bot);
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals("Test Bot", response.getBody().getName());
-        verify(botRepository, times(1)).save(any(Bot.class));
+        mockMvc.perform(post("/api/v1/bots")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(botRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("MyBot"))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+
+        verify(botService, times(1)).createBot(any(Bot.class));
+        verify(filterService, times(1)).addFilter(any(Filter.class));
     }
 
     @Test
-    public void testAddBot_Conflict() {
+    public void testAddBot_InternalServerError() throws Exception {
         BotRequest botRequest = new BotRequest();
-        botRequest.setName("Existing Bot");
+        botRequest.setName("MyBot");
 
-        when(botRepository.existsByName("Existing Bot")).thenReturn(true);
+        when(botService.createBot(any(Bot.class))).thenThrow(new RuntimeException("Database error"));
 
-        ResponseEntity<BotResponse> response = botController.addBot(botRequest);
+        mockMvc.perform(post("/api/v1/bots")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(botRequest)))
+                .andExpect(status().isInternalServerError());
 
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        verify(botRepository, never()).save(any(Bot.class));
-    }
-
-    @Test
-    public void testAddBot_Exception() {
-        BotRequest botRequest = new BotRequest();
-        botRequest.setName("Test Bot");
-        botRequest.setToken("test-token");
-        botRequest.setWelcomeMessage("Welcome!");
-
-        when(botRepository.existsByName("Test Bot")).thenReturn(false);
-        when(botRepository.save(any(Bot.class))).thenThrow(new RuntimeException("Database error"));
-
-        ResponseEntity<BotResponse> response = botController.addBot(botRequest);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        verify(botService, times(1)).createBot(any(Bot.class));
+        verify(filterService, times(0)).addFilter(any(Filter.class));
     }
 }

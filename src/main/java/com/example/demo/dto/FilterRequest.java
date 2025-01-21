@@ -6,8 +6,4 @@ import lombok.Data;
 public class FilterRequest {
     private String pattern;
     private String action;
-
-    public FilterRequest(String s, String allow) {
-
-    }
 }
