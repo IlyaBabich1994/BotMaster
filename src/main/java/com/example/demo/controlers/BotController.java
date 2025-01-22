@@ -17,10 +17,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/bots")
 public class BotController {
-
     @Autowired
     private FilterService filterService;
-
     @Autowired
     private BotService botService;
 
@@ -28,14 +26,11 @@ public class BotController {
     public ResponseEntity<BotResponse> addBot(@Valid @RequestBody BotRequest botRequest) {
         try {
             Bot bot = BotMapper.toBot(botRequest);
-
             Bot createdBot = botService.createBot(bot);
-
             List<Filter> filters = BotMapper.toFilters(createdBot, botRequest.getFilters());
             for (Filter filter : filters) {
                 filterService.addFilter(filter);
             }
-
             BotResponse response = new BotResponse(createdBot.getId(), createdBot.getName(), createdBot.getFilters(), "ACTIVE", createdBot.getCreatedAt());
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);

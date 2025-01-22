@@ -12,6 +12,9 @@ import java.util.List;
 
 public class BotMapper {
     public static Bot toBot(BotRequest botRequest) {
+        if (botRequest == null) {
+            throw new IllegalArgumentException("BotRequest cannot be null");
+        }
         return Bot.builder()
                 .name(botRequest.getName())
                 .token(botRequest.getToken())

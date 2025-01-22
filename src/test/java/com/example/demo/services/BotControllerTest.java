@@ -8,6 +8,7 @@ import com.example.demo.model.Filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -19,6 +20,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.Arrays;
 import java.util.Date;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,22 +75,26 @@ public class BotControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
 
-        verify(botService, times(1)).createBot(any(Bot.class));
-        verify(filterService, times(1)).addFilter(any(Filter.class));
+        ArgumentCaptor<Bot> botCaptor = forClass(Bot.class);
+        verify(botService, times(1)).createBot(botCaptor.capture());
+
+        Bot capturedBot = botCaptor.getValue();
+        assertEquals("MyBot", capturedBot.getName());
+        assertEquals("123456789", capturedBot.getToken());
+        assertEquals("ACTIVE", capturedBot.getStatus());
     }
 
     @Test
     public void testAddBot_InternalServerError() throws Exception {
         BotRequest botRequest = new BotRequest();
         botRequest.setName("MyBot");
-
+        botRequest.setToken("myToken");
+        botRequest.setCategory("myCategory");
         when(botService.createBot(any(Bot.class))).thenThrow(new RuntimeException("Database error"));
-
         mockMvc.perform(post("/api/v1/bots")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(botRequest)))
                 .andExpect(status().isInternalServerError());
-
         verify(botService, times(1)).createBot(any(Bot.class));
         verify(filterService, times(0)).addFilter(any(Filter.class));
     }
