@@ -65,7 +65,7 @@ public class Creater {
         return Filter.builder()
                 .id(id)
                 .botId(botId)
-                .patern(patern)
+                .pattern(patern)
                 .action(action)
                 .build();
     }
