@@ -19,16 +19,20 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 public class BotControllerTest {
 
@@ -97,5 +101,45 @@ public class BotControllerTest {
                 .andExpect(status().isInternalServerError());
         verify(botService, times(1)).createBot(any(Bot.class));
         verify(filterService, times(0)).addFilter(any(Filter.class));
+    }
+
+    @Test
+    public void deleteBot_Success() throws Exception {
+        Long botId = 1L;
+        Bot bot = new Bot();
+
+        when(botService.findById(botId)).thenReturn(bot);
+        doNothing().when(botService).deleteBot(bot);
+
+        mockMvc.perform(delete("/api/v1/bots/{id}", botId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Bot successfully deleted"));
+    }
+
+    @Test
+    public void deleteBot_NotFound() throws Exception {
+        Long botId = 1L;
+
+        when(botService.findById(botId)).thenThrow(new NoSuchElementException("Bot not found"));
+
+        mockMvc.perform(delete("/api/v1/bots/{id}", botId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Bot not found"));
+    }
+
+    @Test
+    public void deleteBot_InternalServerError() throws Exception {
+        Long botId = 1L;
+        Bot bot = new Bot();
+
+        when(botService.findById(botId)).thenReturn(bot);
+        doThrow(new RuntimeException("Some error")).when(botService).deleteBot(bot);
+
+        mockMvc.perform(delete("/api/v1/bots/{id}", botId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("An error occurred"));
     }
 }
