@@ -37,6 +37,8 @@ public class BotServiceImpl implements BotService {
         botRepository.delete(bot);
     }
     @Override
+    public void deleteBotById(Long id){botRepository.deleteById(id);}
+    @Override
     public Bot findById(Long id) {
         return botRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("Bot not found")

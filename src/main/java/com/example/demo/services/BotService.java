@@ -10,5 +10,7 @@ public interface BotService {
 
     void deleteBot(Bot bot);
 
+    void deleteBotById(Long id);
+
     Bot findById(Long id);
 }
