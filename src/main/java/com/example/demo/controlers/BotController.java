@@ -1,6 +1,4 @@
 package com.example.demo.controlers;
-
-import com.example.demo.dto.BotListResponse;
 import com.example.demo.dto.BotRequest;
 import com.example.demo.dto.BotResponse;
 import com.example.demo.dto.BotUpdateRequest;
@@ -13,19 +11,17 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
+import java.util.Optional;
+
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.ResponseEntity.ok;
+
 
 @RestController
 @RequestMapping("/api/v1/bots")
@@ -34,13 +30,6 @@ public class BotController {
     private FilterService filterService;
     @Autowired
     private BotService botService;
-
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> handleNotFound(NoSuchElementException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(ex.getMessage());
-    }
 
     @PostMapping
     public ResponseEntity<BotResponse> addBot(@Valid @RequestBody BotRequest botRequest) {
@@ -51,70 +40,28 @@ public class BotController {
             for (Filter filter : filters) {
                 filterService.addFilter(filter);
             }
-            BotResponse response = new BotResponse(createdBot.getId(), createdBot.getName(), createdBot.getFilters(), "ACTIVE", createdBot.getCreatedAt(), createdBot.getCategory());
+            BotResponse response = new BotResponse(createdBot.getId(), createdBot.getName(), createdBot.getFilters(), "ACTIVE", createdBot.getCreatedAt());
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBot(@PathVariable Long id) {
-        try {
-            botService.deleteBotById(id);
-            return ResponseEntity.ok("Bot successfully deleted");
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bot not found");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
-        }
-    }
-
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateBot(
+    public ResponseEntity<BotResponse> updateBot(
             @PathVariable Long id,
-            @Valid @RequestBody BotUpdateRequest updateRequest) {
+            @Valid @RequestBody BotUpdateRequest request
+    ) {
+        Bot bot = botService.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Бот не найден"));
 
-        try {
-            Bot existingBot = botService.findById(id);
-
-            if (!existingBot.getName().equals(updateRequest.getName())
-                    && botService.existsByName(updateRequest.getName())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Bot name already exists");
-            }
-
-            existingBot.setName(updateRequest.getName());
-            existingBot.setCategory(updateRequest.getCategory());
-            existingBot.setWelcomeMessage(updateRequest.getWelcomeMessage());
-
-            filterService.deleteAllByBotId(id);
-            List<Filter> newFilters = BotMapper.toFilters(existingBot, updateRequest.getFilters());
-            newFilters.forEach(filterService::addFilter);
-
-            Bot updatedBot = botService.updateBot(existingBot);
-            BotResponse response = BotMapper.toResponse(updatedBot);
-
-            return ResponseEntity.ok(response);
-
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+        if (request.getName() != null &&
+                botService.existsByNameAndUser(request.getName(), bot.getOwner().getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Имя бота уже используется");
         }
+
+        botService.updateBot(bot, request);
+        return ResponseEntity.ok(BotMapper.toResponse(bot));
     }
 
-    @GetMapping
-    public ResponseEntity<List<BotListResponse>> getAllBots() {
-        List<Bot> bots = botService.findAll();
-        List<BotListResponse> response = bots.stream()
-                .map(bot -> new BotListResponse(
-                        bot.getId(),
-                        bot.getName(),
-                        bot.getStatus(),
-                        bot.getCreatedAt()))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
 }
