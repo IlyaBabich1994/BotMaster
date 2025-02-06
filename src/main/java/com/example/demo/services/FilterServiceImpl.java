@@ -1,5 +1,8 @@
 package com.example.demo.services;
 
+import com.example.demo.dto.FilterRequest;
+import com.example.demo.mapper.BotMapper;
+import com.example.demo.model.Bot;
 import com.example.demo.model.Filter;
 import com.example.demo.repository.FilterRepository;
 import org.springframework.data.domain.Page;
@@ -9,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 @Service
 public class FilterServiceImpl implements FilterService {
@@ -47,8 +52,9 @@ public class FilterServiceImpl implements FilterService {
         }
         filterRepository.delete(filter);
     }
-    @Override
-    public void deleteAllByBotId(Long botId) {
-        filterRepository.deleteAllByBotId(botId);
+    public void updateFiltersForBot(Bot bot, List<FilterRequest> filters) {
+        filterRepository.deleteAllByBotId(bot.getId());
+        List<Filter> newFilters = BotMapper.toFilters(bot, filters);
+        filterRepository.saveAll(newFilters);
     }
 }

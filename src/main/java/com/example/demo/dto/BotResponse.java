@@ -1,6 +1,5 @@
 package com.example.demo.dto;
 
-import com.example.demo.model.BotCategory;
 import com.example.demo.model.Filter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,5 +15,7 @@ public class BotResponse {
     private List<Filter> filters;
     private String status;
     private Date createdAt;
-    private BotCategory category;
+
+    public BotResponse(Long id, String name, String welcomeMessage, List<FilterResponse> mapFilters) {
+    }
 }

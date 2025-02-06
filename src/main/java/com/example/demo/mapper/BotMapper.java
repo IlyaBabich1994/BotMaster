@@ -2,14 +2,18 @@ package com.example.demo.mapper;
 
 import com.example.demo.dto.BotRequest;
 import com.example.demo.dto.BotResponse;
+import com.example.demo.dto.BotUpdateRequest;
 import com.example.demo.dto.FilterRequest;
+import com.example.demo.dto.FilterResponse;
 import com.example.demo.model.Bot;
 import com.example.demo.model.Filter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BotMapper {
     public static Bot toBot(BotRequest botRequest) {
@@ -20,7 +24,6 @@ public class BotMapper {
                 .name(botRequest.getName())
                 .token(botRequest.getToken())
                 .welcomeMessage(botRequest.getWelcomeMessage())
-                .category(botRequest.getCategory())
                 .createdAt(new Date())
                 .status("ACTIVE")
                 .build();
@@ -42,15 +45,45 @@ public class BotMapper {
         }
         return filters;
     }
+
     public static BotResponse toResponse(Bot bot) {
         return new BotResponse(
                 bot.getId(),
                 bot.getName(),
-                bot.getFilters(),
-                bot.getStatus(),
-                bot.getCreatedAt(),
-                bot.getCategory()
+                bot.getWelcomeMessage(),
+                mapFilters(bot.getFilters())
         );
+    }
+
+    public static void updateBotFromRequest(BotUpdateRequest updateRequest, Bot bot) {
+        if (updateRequest.getName() != null) {
+            bot.setName(updateRequest.getName());
+        }
+        if (updateRequest.getWelcomeMessage() != null) {
+            bot.setWelcomeMessage(updateRequest.getWelcomeMessage());
+        }
+    }
+
+    public static Filter toFilter(FilterRequest filterRequest, Bot bot) {
+        return Filter.builder()
+                .pattern(filterRequest.getPattern())
+                .action(Collections.singletonList(filterRequest.getAction()))
+                .bot(bot)
+                .build();
+    }
+
+    public static FilterResponse toFilterResponse(Filter filter) {
+        return new FilterResponse(
+                filter.getId(),
+                filter.getPattern(),
+                filter.getAction()
+        );
+    }
+
+    private static List<FilterResponse> mapFilters(Collection<Filter> filters) {
+        return filters.stream()
+                .map(BotMapper::toFilterResponse)
+                .collect(Collectors.toList());
     }
 }
 

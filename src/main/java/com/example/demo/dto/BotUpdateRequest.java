@@ -1,25 +1,26 @@
 package com.example.demo.dto;
 
-import com.example.demo.model.BotCategory;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
 public class BotUpdateRequest {
-    @NotEmpty(message = "Name cannot be empty")
-    @Size(max = 20, message = "Name must be less than 20 characters")
+    @Size(min = 3, max = 20)
     private String name;
 
-    @NotNull(message = "Category cannot be null")
-    private BotCategory category;
-
+    @Size(max = 500)
     private String welcomeMessage;
 
     @Valid
+    @NotNull
     private List<FilterRequest> filters;
+
+    public BotUpdateRequest(String existing, Object o) {
+    }
 }

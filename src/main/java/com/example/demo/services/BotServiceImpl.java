@@ -1,15 +1,21 @@
 package com.example.demo.services;
 
+import com.example.demo.controlers.BotController;
+import com.example.demo.dto.BotUpdateRequest;
 import com.example.demo.model.Bot;
 import com.example.demo.repository.BotRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class BotServiceImpl implements BotService {
     private final BotRepository botRepository;
+    @Autowired
+    private FilterService filterService;
     @Autowired
     public BotServiceImpl(BotRepository botRepository) {
         this.botRepository = botRepository;
@@ -36,20 +42,24 @@ public class BotServiceImpl implements BotService {
     public void deleteBot(Bot bot) {
         botRepository.delete(bot);
     }
+    @Transactional
+    public void updateBot(Bot existing, BotUpdateRequest update) {
+        if (update.getName() != null) {
+            existing.setName(update.getName());
+        }
+        if (update.getWelcomeMessage() != null) {
+            existing.setWelcomeMessage(update.getWelcomeMessage());
+        }
+        filterService.updateFiltersForBot(existing, update.getFilters());
+    }
     @Override
-    public void deleteBotById(Long id){botRepository.deleteById(id);}
-    @Override
-    public Bot findById(Long id) {
-        return botRepository.findById(id).orElseThrow(
+    public Optional<Bot> findById(Long id) {
+        return Optional.ofNullable(botRepository.findById(id).orElseThrow(
                 () -> new NoSuchElementException("Bot not found")
-        );
+        ));
     }
-    @Override
-    public Bot updateBot(Bot bot) {
-        return botRepository.save(bot);
-    }
-    @Override
-    public boolean existsByName(String name) {
-        return botRepository.existsByName(name);
+
+    public boolean existsByNameAndUser(String name, Long userId) {
+        return botRepository.existsByNameAndUserId(name, userId);
     }
 }
