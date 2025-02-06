@@ -15,4 +15,7 @@ public class BotResponse {
     private List<Filter> filters;
     private String status;
     private Date createdAt;
+
+    public BotResponse(Long id, String name, String welcomeMessage, List<FilterResponse> mapFilters) {
+    }
 }

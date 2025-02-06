@@ -8,4 +8,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface FilterRepository extends JpaRepository<Filter, Long> {
     Page findAllByBotId(Long botId, Pageable pageable);
+    void deleteAllByBotId(Long botId);
 }

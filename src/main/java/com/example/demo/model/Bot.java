@@ -36,6 +36,7 @@ public class Bot {
     @Column (unique = true,nullable = false)
     private String token;
     private String welcomeMessage;
+    private User owner;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
@@ -44,4 +45,5 @@ public class Bot {
     private List<Filter> filters;
 
     private String status;
+
 }
