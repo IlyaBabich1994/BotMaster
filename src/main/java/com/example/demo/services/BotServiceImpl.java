@@ -5,6 +5,7 @@ import com.example.demo.repository.BotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -51,5 +52,9 @@ public class BotServiceImpl implements BotService {
     @Override
     public boolean existsByName(String name) {
         return botRepository.existsByName(name);
+    }
+    @Override
+    public List<Bot> findAll() {
+        return botRepository.findAll();
     }
 }

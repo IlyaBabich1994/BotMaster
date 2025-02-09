@@ -1,10 +1,11 @@
 package com.example.demo.controlers;
+
+import com.example.demo.dto.BotListResponse;
 import com.example.demo.dto.BotRequest;
 import com.example.demo.dto.BotResponse;
 import com.example.demo.dto.BotUpdateRequest;
 import com.example.demo.mapper.BotMapper;
 import com.example.demo.model.Bot;
-import com.example.demo.model.BotCategory;
 import com.example.demo.model.Filter;
 import com.example.demo.services.BotService;
 import com.example.demo.services.FilterService;
@@ -12,9 +13,19 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/bots")
@@ -40,13 +51,14 @@ public class BotController {
             for (Filter filter : filters) {
                 filterService.addFilter(filter);
             }
-            BotResponse response = new BotResponse(createdBot.getId(), createdBot.getName(), createdBot.getFilters(),"ACTIVE", createdBot.getCreatedAt(),createdBot.getCategory());
+            BotResponse response = new BotResponse(createdBot.getId(), createdBot.getName(), createdBot.getFilters(), "ACTIVE", createdBot.getCreatedAt(), createdBot.getCategory());
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBot(@PathVariable Long id) {
         try {
@@ -58,6 +70,7 @@ public class BotController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }
     }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBot(
             @PathVariable Long id,
@@ -90,5 +103,18 @@ public class BotController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BotListResponse>> getAllBots() {
+        List<Bot> bots = botService.findAll();
+        List<BotListResponse> response = bots.stream()
+                .map(bot -> new BotListResponse(
+                        bot.getId(),
+                        bot.getName(),
+                        bot.getStatus(),
+                        bot.getCreatedAt()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 }

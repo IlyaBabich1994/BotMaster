@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.controlers.BotController;
+import com.example.demo.dto.BotListResponse;
 import com.example.demo.dto.BotRequest;
 import com.example.demo.dto.FilterRequest;
 import com.example.demo.model.Bot;
@@ -14,15 +15,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
@@ -216,5 +223,38 @@ public class BotControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void getAllBots_shouldReturnListOfBots() {
+        List<Bot> mockBots = Arrays.asList(
+                new Bot(1L, "ChatModerator", "token1", "Welcome", BotCategory.MODERATION,
+                        new Date(), null, "ACTIVE"),
+                new Bot(2L, "SupportBot", "token2", "Hi", BotCategory.SUPPORT,
+                        new Date(), null, "INACTIVE")
+        );
+
+        when(botService.findAll()).thenReturn(mockBots);
+
+        ResponseEntity<List<BotListResponse>> response = botController.getAllBots();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
+
+        BotListResponse firstBot = response.getBody().get(0);
+        assertEquals(1L, firstBot.getId());
+        assertEquals("ChatModerator", firstBot.getName());
+        assertEquals("ACTIVE", firstBot.getStatus());
+    }
+
+    @Test
+    void getAllBots_shouldReturnEmptyList() {
+        when(botService.findAll()).thenReturn(Collections.emptyList());
+
+        ResponseEntity<List<BotListResponse>> response = botController.getAllBots();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty());
     }
 }

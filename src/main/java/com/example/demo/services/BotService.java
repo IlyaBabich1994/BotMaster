@@ -2,6 +2,8 @@ package com.example.demo.services;
 
 import com.example.demo.model.Bot;
 
+import java.util.List;
+
 
 public interface BotService {
     Bot findByToken(String token);
@@ -15,4 +17,5 @@ public interface BotService {
     Bot findById(Long id);
     Bot updateBot(Bot bot);
     boolean existsByName(String name);
+    List<Bot> findAll();
 }
