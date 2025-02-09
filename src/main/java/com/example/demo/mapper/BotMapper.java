@@ -1,6 +1,7 @@
 package com.example.demo.mapper;
 
 import com.example.demo.dto.BotRequest;
+import com.example.demo.dto.BotResponse;
 import com.example.demo.dto.FilterRequest;
 import com.example.demo.model.Bot;
 import com.example.demo.model.Filter;
@@ -19,6 +20,7 @@ public class BotMapper {
                 .name(botRequest.getName())
                 .token(botRequest.getToken())
                 .welcomeMessage(botRequest.getWelcomeMessage())
+                .category(botRequest.getCategory())
                 .createdAt(new Date())
                 .status("ACTIVE")
                 .build();
@@ -39,6 +41,16 @@ public class BotMapper {
             filters.add(filter);
         }
         return filters;
+    }
+    public static BotResponse toResponse(Bot bot) {
+        return new BotResponse(
+                bot.getId(),
+                bot.getName(),
+                bot.getFilters(),
+                bot.getStatus(),
+                bot.getCreatedAt(),
+                bot.getCategory()
+        );
     }
 }
 

@@ -1,20 +1,18 @@
 package com.example.demo.dto;
 
-import com.example.demo.model.BotCategory;
-import com.example.demo.model.Filter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class BotResponse {
+public class BotListResponse {
     private Long id;
     private String name;
-    private List<Filter> filters;
     private String status;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
     private Date createdAt;
-    private BotCategory category;
 }

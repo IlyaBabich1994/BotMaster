@@ -47,4 +47,8 @@ public class FilterServiceImpl implements FilterService {
         }
         filterRepository.delete(filter);
     }
+    @Override
+    public void deleteAllByBotId(Long botId) {
+        filterRepository.deleteAllByBotId(botId);
+    }
 }
