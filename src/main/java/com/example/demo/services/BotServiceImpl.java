@@ -44,4 +44,12 @@ public class BotServiceImpl implements BotService {
                 () -> new NoSuchElementException("Bot not found")
         );
     }
+    @Override
+    public Bot updateBot(Bot bot) {
+        return botRepository.save(bot);
+    }
+    @Override
+    public boolean existsByName(String name) {
+        return botRepository.existsByName(name);
+    }
 }

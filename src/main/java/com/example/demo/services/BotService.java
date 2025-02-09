@@ -13,4 +13,6 @@ public interface BotService {
     void deleteBotById(Long id);
 
     Bot findById(Long id);
+    Bot updateBot(Bot bot);
+    boolean existsByName(String name);
 }

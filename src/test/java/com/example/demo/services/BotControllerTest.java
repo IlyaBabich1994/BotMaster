@@ -4,6 +4,7 @@ import com.example.demo.controlers.BotController;
 import com.example.demo.dto.BotRequest;
 import com.example.demo.dto.FilterRequest;
 import com.example.demo.model.Bot;
+import com.example.demo.model.BotCategory;
 import com.example.demo.model.Filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,17 +24,19 @@ import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentCaptor.forClass;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 
 public class BotControllerTest {
 
@@ -52,7 +55,9 @@ public class BotControllerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(botController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(botController)
+                .build();
+
     }
 
     @Test
@@ -60,7 +65,7 @@ public class BotControllerTest {
         BotRequest botRequest = new BotRequest();
         botRequest.setName("MyBot");
         botRequest.setToken("123456789");
-        botRequest.setCategory("General");
+        botRequest.setCategory(BotCategory.MODERATION);
         botRequest.setWelcomeMessage("Welcome to MyBot!");
         botRequest.setFilters(Arrays.asList(new FilterRequest()));
 
@@ -94,7 +99,7 @@ public class BotControllerTest {
         BotRequest botRequest = new BotRequest();
         botRequest.setName("MyBot");
         botRequest.setToken("myToken");
-        botRequest.setCategory("myCategory");
+        botRequest.setCategory(BotCategory.MODERATION);
         when(botService.createBot(any(Bot.class))).thenThrow(new RuntimeException("Database error"));
         mockMvc.perform(post("/api/v1/bots")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,12 +136,85 @@ public class BotControllerTest {
     @Test
     public void deleteBot_InternalServerError() throws Exception {
         Long botId = 1L;
-
         doThrow(new RuntimeException("Some error")).when(botService).deleteBotById(botId);
-
         mockMvc.perform(delete("/api/v1/bots/{id}", botId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("An error occurred"));
+    }
+
+    @Test
+    void updateBot_NameConflict() throws Exception {
+        Long botId = 1L;
+        Bot existingBot = Bot.builder()
+                .id(botId)
+                .name("OldName")
+                .token("conflict-token")
+                .category(BotCategory.SUPPORT)
+                .welcomeMessage("Message")
+                .status("ACTIVE")
+                .createdAt(new Date())
+                .build();
+
+        when(botService.findById(botId)).thenReturn(existingBot);
+        when(botService.existsByName("NewName")).thenReturn(true);
+
+        String requestBody = """
+                {
+                    "name": "NewName",
+                    "category": "SUPPORT",
+                    "welcomeMessage": "Updated message"
+                }""";
+
+        mockMvc.perform(put("/api/v1/bots/{id}", botId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isConflict())
+                .andExpect(content().string("Bot name already exists"));
+    }
+
+    @Test
+    void updateBot_NotFound() throws Exception {
+        String validRequest = """
+                {
+                    "name": "TempName",
+                    "category": "SUPPORT",
+                    "welcomeMessage": "Hello"
+                }""";
+
+        when(botService.findById(99L)).thenThrow(NoSuchElementException.class);
+
+        mockMvc.perform(put("/api/v1/bots/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validRequest))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateBot_InternalServerError() throws Exception {
+        Long botId = 1L;
+        Bot existingBot = Bot.builder()
+                .id(botId)
+                .name("TestBot")
+                .token("test-token")
+                .category(BotCategory.SUPPORT)
+                .status("ACTIVE")
+                .createdAt(new Date())
+                .build();
+
+        when(botService.findById(botId)).thenReturn(existingBot);
+        doThrow(new RuntimeException("DB error")).when(filterService).deleteAllByBotId(anyLong());
+
+        String requestBody = """
+                {
+                    "name": "Test",
+                    "category": "SUPPORT",
+                    "welcomeMessage": "Test"
+                }""";
+
+        mockMvc.perform(put("/api/v1/bots/{id}", botId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isInternalServerError());
     }
 }

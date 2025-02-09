@@ -1,8 +1,10 @@
 package com.example.demo.controlers;
 import com.example.demo.dto.BotRequest;
 import com.example.demo.dto.BotResponse;
+import com.example.demo.dto.BotUpdateRequest;
 import com.example.demo.mapper.BotMapper;
 import com.example.demo.model.Bot;
+import com.example.demo.model.BotCategory;
 import com.example.demo.model.Filter;
 import com.example.demo.services.BotService;
 import com.example.demo.services.FilterService;
@@ -11,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -25,6 +24,13 @@ public class BotController {
     @Autowired
     private BotService botService;
 
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleNotFound(NoSuchElementException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ex.getMessage());
+    }
+
     @PostMapping
     public ResponseEntity<BotResponse> addBot(@Valid @RequestBody BotRequest botRequest) {
         try {
@@ -34,7 +40,7 @@ public class BotController {
             for (Filter filter : filters) {
                 filterService.addFilter(filter);
             }
-            BotResponse response = new BotResponse(createdBot.getId(), createdBot.getName(), createdBot.getFilters(), "ACTIVE", createdBot.getCreatedAt());
+            BotResponse response = new BotResponse(createdBot.getId(), createdBot.getName(), createdBot.getFilters(),"ACTIVE", createdBot.getCreatedAt(),createdBot.getCategory());
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -50,6 +56,39 @@ public class BotController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Bot not found");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
+    }
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateBot(
+            @PathVariable Long id,
+            @Valid @RequestBody BotUpdateRequest updateRequest) {
+
+        try {
+            Bot existingBot = botService.findById(id);
+
+            if (!existingBot.getName().equals(updateRequest.getName())
+                    && botService.existsByName(updateRequest.getName())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Bot name already exists");
+            }
+
+            existingBot.setName(updateRequest.getName());
+            existingBot.setCategory(updateRequest.getCategory());
+            existingBot.setWelcomeMessage(updateRequest.getWelcomeMessage());
+
+            filterService.deleteAllByBotId(id);
+            List<Filter> newFilters = BotMapper.toFilters(existingBot, updateRequest.getFilters());
+            newFilters.forEach(filterService::addFilter);
+
+            Bot updatedBot = botService.updateBot(existingBot);
+            BotResponse response = BotMapper.toResponse(updatedBot);
+
+            return ResponseEntity.ok(response);
+
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

@@ -11,4 +11,5 @@ public interface FilterService  {
     void addFilter(Filter filter);
 
     void removeFilter(Filter filter);
+    void deleteAllByBotId(Long botId);
 }
