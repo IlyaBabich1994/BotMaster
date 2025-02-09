@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -61,5 +62,9 @@ public class BotServiceImpl implements BotService {
 
     public boolean existsByNameAndUser(String name, Long userId) {
         return botRepository.existsByNameAndUserId(name, userId);
+    }
+    @Override
+    public List<Bot> findAll() {
+        return botRepository.findAll();
     }
 }
