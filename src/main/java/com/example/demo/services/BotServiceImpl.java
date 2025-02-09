@@ -5,6 +5,8 @@ import com.example.demo.repository.BotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
+
 @Service
 public class BotServiceImpl implements BotService {
     private final BotRepository botRepository;
@@ -33,5 +35,13 @@ public class BotServiceImpl implements BotService {
     @Override
     public void deleteBot(Bot bot) {
         botRepository.delete(bot);
+    }
+    @Override
+    public void deleteBotById(Long id){botRepository.deleteById(id);}
+    @Override
+    public Bot findById(Long id) {
+        return botRepository.findById(id).orElseThrow(
+                () -> new NoSuchElementException("Bot not found")
+        );
     }
 }
